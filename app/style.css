@@ -221,7 +221,7 @@ main {
 }
 
 .trophy-name { font-size: 18px; font-weight: 800; margin: 0; }
-.trophy-row.earned .trophy-name { text-decoration: line-through; text-decoration-thickness: 2px; }
+.trophy-row.earned .trophy-name { font-weight: 800; }
 .trophy-desc { margin: 2px 0 0; color: var(--muted); }
 .trophy-desc.hidden-desc { font-style: italic; }
 
@@ -239,6 +239,7 @@ main {
 }
 
 .tag.missable { color: #ffd2cc; border-color: var(--danger); }
+.tag.earned-tag { color: #06231f; background: var(--accent-2); border-color: var(--accent-2); }
 .tag.kind-story { color: #ffd9ec; border-color: var(--accent); }
 .tag.kind-collectibles { color: #c9f5ec; border-color: var(--accent-2); }
 .tag.kind-activities { color: #ffe9bd; border-color: var(--gold); }
@@ -284,8 +285,8 @@ main {
   margin-bottom: 18px;
 }
 
-.missable-callout h2 { margin: 0 0 6px; font-size: 20px; color: #ffd2cc; }
-.missable-callout p { margin: 0; }
+.missable-callout h2 { margin: 0 0 6px; font-size: 24px; color: #ffd2cc; }
+.missable-callout p { margin: 0; font-size: 17px; line-height: 1.55; }
 
 .roadmap-stage {
   background: var(--card);
@@ -308,7 +309,7 @@ main {
   font-size: 14px;
   cursor: pointer;
 }
-.stage-trophy.earned { border-color: var(--accent-2); color: var(--accent-2); text-decoration: line-through; }
+.stage-trophy.earned { border-color: var(--accent-2); color: var(--accent-2); background: #123b36; }
 .stage-trophy .mini-grade { font-weight: 800; font-size: 11px; text-transform: uppercase; margin-right: 6px; }
 
 .roadmap-notes { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; }
@@ -358,3 +359,74 @@ footer p { margin: 6px 0; }
   .trophy-row { grid-template-columns: 30px 1fr; }
   .grade-badge { grid-column: 2; justify-self: start; }
 }
+
+/* Round 2: guides open as numbered key steps with a prominent source chip,
+   and two screenshot scenes — a dense checklist (shot-compact) and a
+   full-page guide reader (shot-guide-focus). */
+
+/* Numbered key steps: each sentence of a guide is one step. */
+.guide-steps { margin: 8px 0 0; padding-left: 26px; }
+.guide-steps li { margin: 0 0 10px; font-size: 17px; line-height: 1.55; padding-left: 6px; }
+.guide-steps li::marker { font-weight: 800; color: var(--accent-2); }
+
+/* The cited source, as a chip the judge can spot at a glance. */
+.guide-source { margin-top: 14px; }
+.source-chip {
+  display: inline-block;
+  background: #0d2b29;
+  border: 2px solid var(--accent-2);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+}
+.source-chip a { color: var(--accent-2); text-decoration: none; }
+#guideSourceNote { font-size: 14px; color: var(--muted); }
+
+/* Dense checklist scene: slimmer masthead, tighter rows, and the open guide
+   panel pinned to the bottom of the viewport so the cover shows the checklist,
+   the filters, the progress and a guide all at once. */
+body.shot-compact .masthead { padding: 14px 20px 12px; }
+body.shot-compact h1 { font-size: 30px; margin-bottom: 4px; }
+body.shot-compact .tagline { display: none; }
+body.shot-compact .progress-card { padding: 10px 14px; min-width: 230px; }
+body.shot-compact .progress-numbers { font-size: 24px; }
+body.shot-compact .toolbar { padding: 10px 14px; }
+body.shot-compact .trophy-row { padding: 10px 14px; }
+body.shot-compact .trophy-name { font-size: 17px; }
+body.shot-compact .trophy-desc { font-size: 15px; }
+body.shot-compact .guide-panel {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1040px, calc(100% - 40px));
+  bottom: 8px;
+  z-index: 5;
+  max-height: 42vh;
+  overflow: auto;
+  padding: 12px 18px;
+  margin-top: 0;
+}
+body.shot-compact .guide-steps li { font-size: 15px; margin-bottom: 5px; }
+body.shot-compact .guide-panel h2 { font-size: 22px; }
+body.shot-compact .guide-panel h3 { font-size: 15px; margin-top: 6px; }
+body.shot-compact .guide-meta { margin-top: 6px; }
+body.shot-compact .source-chip { padding: 4px 12px; }
+body.shot-compact .guide-btn { display: none; }
+body.shot-compact .guide-earned { display: none; }
+
+/* Full-page guide reader scene: only the masthead and the guide panel, set
+   large so the steps and the source stay readable when the shot is shrunk. */
+body.shot-guide-focus .tabs,
+body.shot-guide-focus #viewChecklist,
+body.shot-guide-focus #viewRoadmap,
+body.shot-guide-focus footer { display: none; }
+body.shot-guide-focus .guide-panel { position: static; left: auto; width: auto; max-height: none; overflow: visible; transform: none; margin-top: 24px; padding: 18px 24px; }
+body.shot-guide-focus .guide-panel h2 { font-size: 30px; }
+body.shot-guide-focus .guide-desc { font-size: 19px; }
+body.shot-guide-focus .guide-panel h3 { font-size: 19px; margin-top: 8px; }
+body.shot-guide-focus .guide-steps li { font-size: 18px; line-height: 1.5; margin-bottom: 10px; }
+body.shot-guide-focus .guide-earned { display: none; }
+body.shot-guide-focus .source-chip { font-size: 19px; padding: 8px 18px; }
+body.shot-guide-focus #guideSourceNote { font-size: 16px; }

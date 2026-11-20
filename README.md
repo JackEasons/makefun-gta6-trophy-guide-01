@@ -13,7 +13,8 @@ An offline guide and tracker for all 55 PlayStation 5 trophies of Grand Theft Au
 - **Filters** — by kind (story, missable, collectibles, activities, online), by grade, by earned/unearned, plus full-text search.
 - **Spoiler setting** — on by default: hidden story trophies stay covered (name and description) until you earn them.
 - **Roadmap to the platinum** — four stages in the order the published roadmaps recommend, with the time each stage takes and the trophies in it.
-- **Cited guides** — every trophy's guide names its source (Push Square, PowerPyx, GTABase, Insider Gaming, KeenGamer) beside the guide text.
+- **Cited guides** — every trophy's guide names its source (Push Square, PowerPyx, GTABase, Insider Gaming, KeenGamer) beside the guide text, shown as a source chip under the guide.
+- **Key steps** — each guide opens as a numbered list of steps, so its substance is readable at a glance, with the source chip right below it.
 
 ## Run it
 
@@ -29,6 +30,8 @@ node serve.ts
 ```
 
 The app is plain static files under `app/` — no build step, no network at run time. Open `app/index.html` in desktop Chrome with the network off and it works.
+
+Screenshot scenes (used by the maker's screenshot runs) take `?shot=checklist|guide|roadmap|filters`, `?compact=1` for a denser layout with an open guide pinned to the bottom, and `?focus=guide` for a full-page guide reader; `?trophy=<id>` opens a guide, `?spoilers=on|off` sets the spoiler toggle, and `?earned=<ids>` pre-checks trophies.
 
 ## Trophy data
 

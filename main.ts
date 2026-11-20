@@ -59,8 +59,20 @@ function checkTrophyData() {
   return list.length;
 }
 
+// Fail fast if a screenshot is over the gate's 256 KiB cap: buildDossier
+// would refuse the dossier, and a late failure wastes a whole run.
+function checkScreenshots() {
+  const dir = join(REPO_ROOT, 'screenshots');
+  if (!existsSync(dir)) return;
+  const over = readdirSync(dir)
+    .filter((n) => !n.startsWith('.'))
+    .filter((n) => statSync(join(dir, n)).size > 262144);
+  if (over.length) throw new Error(`screenshot(s) over the 256 KiB cap: ${over.join(', ')}`);
+}
+
 mkdirSync(OUT_DIR, { recursive: true });
 const trophyCount = checkTrophyData();
+checkScreenshots();
 cpSync(join(REPO_ROOT, 'app'), join(OUT_DIR, 'app'), { recursive: true });
 mkdirSync(join(OUT_DIR, 'screenshots'), { recursive: true });
 if (existsSync(join(REPO_ROOT, 'screenshots'))) {
@@ -70,9 +82,10 @@ if (existsSync(join(REPO_ROOT, 'screenshots'))) {
 const dossierPath = join(OUT_DIR, 'dossier.json');
 writeFileSync(dossierPath, buildDossier(OUT_DIR, DOSSIER_OPTIONS));
 
-const shotCount = readdirSync(join(OUT_DIR, 'screenshots')).filter((n) => !n.startsWith('.')).length;
+const shotFiles = readdirSync(join(OUT_DIR, 'screenshots')).filter((n) => !n.startsWith('.')).sort();
+const shotSizes = shotFiles.map((n) => `${n} ${statSync(join(OUT_DIR, 'screenshots', n)).size}B`).join(', ');
 const dossierBytes = statSync(dossierPath).size;
 console.log(
   `Leonida Trophy Atlas handed in: ${trophyCount} trophies, ${countEntries(join(OUT_DIR, 'app'))} app entries, ` +
-    `${shotCount} screenshots, dossier ${dossierBytes} bytes -> ${OUT_DIR}`,
+    `${shotFiles.length} screenshots (${shotSizes}), dossier ${dossierBytes} bytes -> ${OUT_DIR}`,
 );

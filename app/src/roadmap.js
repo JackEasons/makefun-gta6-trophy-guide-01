@@ -108,7 +108,7 @@ export function renderRoadmap(state) {
         if (!t) return '';
         const earned = state.earned.has(id);
         const label = state.hideSpoilers && t.hidden && !earned ? 'Hidden trophy' : t.name;
-        return `<button type="button" class="stage-trophy${earned ? ' earned' : ''}" data-guide="${id}"><span class="mini-grade">${t.grade}</span>${label}</button>`;
+        return `<button type="button" class="stage-trophy${earned ? ' earned' : ''}" data-guide="${id}"><span class="mini-grade">${t.grade}</span>${earned ? '✓ ' : ''}${label}</button>`;
       })
       .join('');
     return `<article class="roadmap-stage">

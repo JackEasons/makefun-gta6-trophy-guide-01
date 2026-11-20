@@ -64,4 +64,5 @@ createServer((request, response) => {
   createReadStream(file).pipe(response);
 }).listen(port, '127.0.0.1', () => {
   console.log(`Leonida Trophy Atlas: app/ is on http://localhost:${port}`);
+  console.log(`Screenshot scenes: ${['checklist', 'guide', 'roadmap', 'filters'].map((s) => `/?shot=${s}`).join(' ')}`);
 });

@@ -31,6 +31,13 @@ export function applyShotParams(state, actions) {
     }
   }
 
+  // Round 2 scenes: ?compact=1 densifies the page and pins an open guide
+  // panel to the viewport bottom; ?focus=guide shows a full-page guide
+  // reader; ?noscroll=1 keeps opening a guide from scrolling the shot.
+  if (params.get('compact') === '1') document.body.classList.add('shot-compact');
+  if (params.get('focus') === 'guide') document.body.classList.add('shot-guide-focus');
+  if (params.get('noscroll') === '1') window.__atlasNoScroll = true;
+
   const filter = params.get('filter');
   if (filter) {
     state.kind = filter;

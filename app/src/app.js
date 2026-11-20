@@ -112,6 +112,7 @@ function renderProgress() {
 
 function tagHtml(trophy) {
   const tags = [`<span class="tag kind-${trophy.kind}">${kindLabel(trophy.kind)}</span>`];
+  if (state.earned.has(trophy.id)) tags.push('<span class="tag earned-tag">✓ Earned</span>');
   if (trophy.missable) tags.push('<span class="tag missable">Missable</span>');
   if (trophy.count != null) tags.push(`<span class="tag">Target: ${trophy.count.toLocaleString('en-US')}</span>`);
   if (trophy.hidden) tags.push('<span class="tag">Hidden</span>');
@@ -140,15 +141,26 @@ function renderList() {
   $('resultCount').textContent = `Showing ${shown.length} of ${state.trophies.length} trophies`;
 }
 
+// Round 2: a guide opens as numbered key steps — one sentence per step —
+// so its substance reads at a glance instead of as one block of prose.
+function renderGuideSteps(guide) {
+  const steps = guide
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 3)
+    .slice(0, 8);
+  $('guideSteps').innerHTML = steps.map((s) => `<li>${s.replace(/</g, '&lt;')}</li>`).join('');
+}
+
 function openGuide(id) {
   const trophy = state.trophies.find((t) => t.id === id);
   if (!trophy) return;
   state.openGuideId = id;
-  $('guideKicker').textContent = `${gradeLabel(trophy.grade)} · ${kindLabel(trophy.kind)}${trophy.missable ? ' · Missable' : ''}${trophy.hidden ? ' · Hidden' : ''}`;
+  $('guideKicker').textContent = `${gradeLabel(trophy.grade)} · ${kindLabel(trophy.kind)} · Roadmap stage ${trophy.stage}${trophy.missable ? ' · Missable' : ''}${trophy.hidden ? ' · Hidden' : ''}`;
   $('guideTitle').textContent = trophyVisibleName(trophy);
   $('guideDesc').textContent = trophyVisibleDesc(trophy);
   $('guideMeta').innerHTML = tagHtml(trophy);
-  $('guideText').textContent = trophy.guide;
+  renderGuideSteps(trophy.guide);
   const link = $('guideSource');
   link.textContent = trophy.source;
   link.href = trophy.sourceUrl;
@@ -159,7 +171,9 @@ function openGuide(id) {
     setEarned(trophy.id, box.checked);
   };
   $('guidePanel').hidden = false;
-  $('guidePanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Screenshot scenes set window.__atlasNoScroll so opening a guide never
+  // scrolls the masthead and filters out of the shot.
+  if (!window.__atlasNoScroll) $('guidePanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function closeGuide() {
