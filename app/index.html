@@ -22,6 +22,7 @@
       <p class="progress-sub" id="nextUp"></p>
     </div>
   </div>
+  <div class="audit-wrap"><p class="audit-bar" id="auditBar" aria-live="polite"></p></div>
 </header>
 
 <nav class="tabs" aria-label="Sections">
@@ -98,16 +99,27 @@
       <button type="button" id="guideClose" aria-label="Close guide">×</button>
     </div>
     <div class="guide-meta" id="guideMeta"></div>
-    <h3>How to unlock it — key steps</h3>
-    <ol class="guide-steps" id="guideSteps"></ol>
-    <p class="guide-source"><span class="source-chip">Source: <a id="guideSource" href="#" rel="noopener" target="_blank"></a></span> <span id="guideSourceNote"></span></p>
-    <label class="guide-earned"><input id="guideEarned" type="checkbox"> Mark as earned</label>
+    <div class="guide-counter" id="guideCounter" hidden>
+      <span class="counter-label">Your count</span>
+      <button type="button" class="counter-btn" id="counterMinus" aria-label="One fewer">−</button>
+      <span class="counter-value"><strong id="counterNow">0</strong> / <span id="counterTarget"></span> <span id="counterUnit"></span></span>
+      <button type="button" class="counter-btn" id="counterPlus" aria-label="One more">+</button>
+    </div>
+    <div class="guide-body">
+      <div class="guide-main">
+        <h3>How to unlock it — key steps</h3>
+        <ol class="guide-steps" id="guideSteps"></ol>
+        <p class="guide-source"><span class="source-chip">Source: <a id="guideSource" href="#" rel="noopener" target="_blank"></a></span> <span id="guideSourceNote"></span></p>
+        <label class="guide-earned"><input id="guideEarned" type="checkbox"> Mark as earned</label>
+      </div>
+      <aside class="guide-sources" id="guideSources" aria-label="Sources for this guide"></aside>
+    </div>
   </section>
 </main>
 
 <footer>
   <p>Official trophy names, descriptions and grades are shown as PlayStation publishes them. Every guide on this page is written in our own words for this atlas, and each one cites the guide it draws on — a named source beside every trophy. No Rockstar Games logo, artwork or game imagery is used anywhere in this guide.</p>
-  <p>Sources consulted: Push Square, PowerPyx, GTABase, Insider Gaming, KeenGamer. Progress is stored only in your browser (localStorage) and never leaves your device.</p>
+  <p>Sources consulted: Push Square, PowerPyx, GTABase, KeenGamer — four guide pages, read 20 Nov 2026; every trophy in this atlas cites one of them. Progress is stored only in your browser (localStorage) and never leaves your device.</p>
 </footer>
 
 <script type="module" src="src/app.js"></script>

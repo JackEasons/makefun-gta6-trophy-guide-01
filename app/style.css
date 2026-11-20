@@ -416,6 +416,108 @@ body.shot-compact .source-chip { padding: 4px 12px; }
 body.shot-compact .guide-btn { display: none; }
 body.shot-compact .guide-earned { display: none; }
 
+/* Round 3: the audit bar under the title, numbered step citations, the
+   sources panel and counter in the guide, and the roadmap's next-up strip. */
+
+.audit-wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+.audit-bar {
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent-2);
+  border-radius: 8px;
+  background: rgba(13, 11, 30, 0.72);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+/* The guide panel splits: steps on the left, the cited sources on the right. */
+.guide-body { display: grid; grid-template-columns: 1fr 250px; gap: 18px; align-items: start; }
+.guide-main h3 { margin: 14px 0 4px; font-size: 16px; }
+.cite { color: var(--accent-2); font-size: 12px; font-weight: 800; margin-left: 2px; }
+.guide-sources {
+  background: rgba(13, 11, 30, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 14px;
+}
+.guide-sources h3 { margin: 0 0 8px; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-2); }
+.src-list { list-style: none; margin: 0; padding: 0; }
+.src-list li { margin: 0 0 10px; font-size: 14px; line-height: 1.45; }
+.src-num { font-weight: 800; color: var(--accent-2); }
+.src-detail { color: var(--muted); font-size: 13px; }
+.src-note { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+/* Running counter for trophies with a target number. */
+.guide-counter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(13, 11, 30, 0.6);
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  font-size: 15px;
+}
+.counter-label { font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; font-size: 13px; color: var(--gold); }
+.counter-value strong { font-size: 20px; color: var(--text); }
+.counter-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-2);
+  background: transparent;
+  color: var(--accent-2);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+.counter-btn:hover { background: rgba(55, 224, 200, 0.12); }
+
+/* Roadmap next-up strip. */
+.roadmap-next { margin: 0 0 14px; padding: 12px 16px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); font-size: 15px; }
+.next-chip {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--accent-2);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 2px 2px 2px 0;
+}
+
+/* Dense checklist scene: keep the audit bar visible and slim, and let the
+   guide panel's two columns breathe a little more at the viewport bottom. */
+body.shot-compact .audit-bar { font-size: 12px; line-height: 1.55; padding: 8px 12px; margin-top: 10px; }
+body.shot-compact .guide-panel { max-height: 46vh; }
+body.shot-compact .guide-body { grid-template-columns: 1fr 230px; gap: 14px; }
+body.shot-compact .guide-sources { margin-top: 6px; padding: 10px 12px; }
+body.shot-compact .guide-sources h3 { font-size: 13px; }
+body.shot-compact .src-list li { font-size: 13px; margin-bottom: 6px; }
+body.shot-compact .guide-counter { margin-top: 8px; padding: 5px 10px; font-size: 14px; }
+body.shot-compact .guide-steps li { font-size: 13px; line-height: 1.4; margin-bottom: 2px; }
+body.shot-compact .guide-panel h3 { margin-top: 6px; }
+body.shot-compact .guide-meta { margin-top: 4px; }
+body.shot-compact .guide-panel h2 { font-size: 21px; }
+body.shot-compact .guide-desc { font-size: 14px; }
+body.shot-compact .guide-kicker { margin-bottom: 2px; }
+body.shot-compact .result-count { display: none; }
+
+/* Full-page guide reader scene: the two-column guide gets room to breathe. */
+body.shot-guide-focus .guide-body { grid-template-columns: 1fr 300px; gap: 24px; }
+body.shot-guide-focus .guide-sources { padding: 16px 18px; }
+body.shot-guide-focus .guide-sources h3 { font-size: 16px; }
+body.shot-guide-focus .src-list li { font-size: 16px; }
+body.shot-guide-focus .guide-counter { font-size: 17px; padding: 10px 14px; }
+body.shot-guide-focus .cite { font-size: 13px; }
+
 /* Full-page guide reader scene: only the masthead and the guide panel, set
    large so the steps and the source stay readable when the shot is shrunk. */
 body.shot-guide-focus .tabs,

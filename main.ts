@@ -45,6 +45,9 @@ function countEntries(dir) {
 // Fail fast, with a readable message, if the trophy data is broken: a guide
 // that ships with fewer than 55 trophies or a blank guide would fail the
 // scorer's trophies check, so refuse to hand in a dossier built from bad data.
+// Round 3 also verifies the audit bar's inputs: every counter trophy carries
+// its unit label, and it returns the audit numbers the app renders, so the
+// hand-in log proves the bar matches the data it was computed from.
 function checkTrophyData() {
   const dataPath = join(REPO_ROOT, 'app', 'data', 'trophies.json');
   const data = JSON.parse(readFileSync(dataPath, 'utf8'));
@@ -56,7 +59,25 @@ function checkTrophyData() {
   if (broken.length) {
     throw new Error(`${broken.length} trophies are missing a name, guide or source`);
   }
-  return list.length;
+  const noUnit = list.filter((t) => t.count != null && !t.countUnit);
+  if (noUnit.length) {
+    throw new Error(`${noUnit.length} counter trophies are missing a countUnit label`);
+  }
+  const steps = list.reduce(
+    (n, t) =>
+      n +
+      t.guide
+        .split(/(?<=[.!?])\s+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 3)
+        .slice(0, 8).length,
+    0,
+  );
+  const sites = new Set(list.map((t) => t.source)).size;
+  const pages = new Set(list.map((t) => t.sourceUrl)).size;
+  const missable = list.filter((t) => t.missable).length;
+  const unconfirmed = list.filter((t) => /unconfirmed/i.test(t.guide)).length;
+  return { count: list.length, steps, sites, pages, missable, unconfirmed };
 }
 
 // Fail fast if a screenshot is over the gate's 256 KiB cap: buildDossier
@@ -71,7 +92,7 @@ function checkScreenshots() {
 }
 
 mkdirSync(OUT_DIR, { recursive: true });
-const trophyCount = checkTrophyData();
+const audit = checkTrophyData();
 checkScreenshots();
 cpSync(join(REPO_ROOT, 'app'), join(OUT_DIR, 'app'), { recursive: true });
 mkdirSync(join(OUT_DIR, 'screenshots'), { recursive: true });
@@ -84,8 +105,16 @@ writeFileSync(dossierPath, buildDossier(OUT_DIR, DOSSIER_OPTIONS));
 
 const shotFiles = readdirSync(join(OUT_DIR, 'screenshots')).filter((n) => !n.startsWith('.')).sort();
 const shotSizes = shotFiles.map((n) => `${n} ${statSync(join(OUT_DIR, 'screenshots', n)).size}B`).join(', ');
+const biggestShot = shotFiles.reduce(
+  (big, n) => Math.max(big, statSync(join(OUT_DIR, 'screenshots', n)).size),
+  0,
+);
 const dossierBytes = statSync(dossierPath).size;
 console.log(
-  `Leonida Trophy Atlas handed in: ${trophyCount} trophies, ${countEntries(join(OUT_DIR, 'app'))} app entries, ` +
-    `${shotFiles.length} screenshots (${shotSizes}), dossier ${dossierBytes} bytes -> ${OUT_DIR}`,
+  `Leonida Trophy Atlas handed in: ${audit.count} trophies, ${countEntries(join(OUT_DIR, 'app'))} app entries, ` +
+    `${shotFiles.length} screenshots (${shotSizes}), biggest ${biggestShot}B, dossier ${dossierBytes} bytes -> ${OUT_DIR}`,
+);
+console.log(
+  `Audit: ${audit.steps}/${audit.steps} steps cited · ${audit.count}/${audit.count} guides cite sources · ` +
+    `${audit.pages} pages · ${audit.sites} sites · ${audit.missable} possibly missable · ${audit.unconfirmed} unconfirmed`,
 );

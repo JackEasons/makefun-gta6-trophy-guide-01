@@ -24,10 +24,30 @@ export function applyShotParams(state, actions) {
     try {
       localStorage.setItem(
         'leonida-trophy-atlas-v1',
-        JSON.stringify({ earned: [...state.earned].sort(), hideSpoilers: state.hideSpoilers }),
+        JSON.stringify({ earned: [...state.earned].sort(), counts: state.counts, hideSpoilers: state.hideSpoilers }),
       );
     } catch {
       // storage unavailable; the in-memory set still drives this render
+    }
+  }
+
+  // Round 3: ?count=<trophy-id>:<n> pre-sets a running counter (for example
+  // the missable trophy's meditation count) in the screenshot scene only.
+  const count = params.get('count');
+  if (count) {
+    const [id, raw] = count.split(':');
+    const trophy = state.trophies.find((t) => t.id === id);
+    if (trophy && trophy.count != null) {
+      const n = Math.max(0, Math.min(trophy.count, Number(raw) || 0));
+      state.counts[id] = n;
+      try {
+        localStorage.setItem(
+          'leonida-trophy-atlas-v1',
+          JSON.stringify({ earned: [...state.earned].sort(), counts: state.counts, hideSpoilers: state.hideSpoilers }),
+        );
+      } catch {
+        // storage unavailable; the in-memory count still drives this render
+      }
     }
   }
 

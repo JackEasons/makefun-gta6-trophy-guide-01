@@ -11,6 +11,7 @@ const STORE_KEY = 'leonida-trophy-atlas-v1';
 const state = {
   trophies: [],
   earned: new Set(),
+  counts: {},
   hideSpoilers: true,
   kind: 'all',
   grade: 'all',
@@ -20,27 +21,110 @@ const state = {
   openGuideId: null,
 };
 
+// The four guide pages this atlas draws on, numbered in the order they first
+// appear in trophies.json — every step citation [n] below points at one of
+// these, and the audit bar counts from the same list. Read 20 Nov 2026.
+const SITES = ['PowerPyx', 'Push Square', 'GTABase', 'KeenGamer'];
+const READ_DATE = '20 Nov 2026';
+
 const $ = (id) => document.getElementById(id);
 
 function loadStore() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (!raw) return { earned: [], hideSpoilers: true };
+    if (!raw) return { earned: [], counts: {}, hideSpoilers: true };
     const parsed = JSON.parse(raw);
     return {
       earned: Array.isArray(parsed.earned) ? parsed.earned : [],
+      counts: parsed.counts && typeof parsed.counts === 'object' ? parsed.counts : {},
       hideSpoilers: parsed.hideSpoilers !== false,
     };
   } catch {
-    return { earned: [], hideSpoilers: true };
+    return { earned: [], counts: {}, hideSpoilers: true };
   }
 }
 
 function saveStore() {
   localStorage.setItem(
     STORE_KEY,
-    JSON.stringify({ earned: [...state.earned].sort(), hideSpoilers: state.hideSpoilers }),
+    JSON.stringify({ earned: [...state.earned].sort(), counts: state.counts, hideSpoilers: state.hideSpoilers }),
   );
+}
+
+// Round 3: the audit bar under the title. Every number is computed from the
+// trophy data itself, so the bar can never drift from what the atlas holds:
+// official names/descriptions/grades, grade split, hidden count, guide steps
+// (each step cites its source), guides with a source, guides naming two or
+// more of the four sites, distinct pages/sites read, the missable trophy,
+// guides that say their trigger is unconfirmed, and disagreements between
+// sources (none found — with one source per trophy there is nothing to
+// compare, and the bar says so instead of inventing a dispute).
+function splitSteps(guide) {
+  return guide
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 3)
+    .slice(0, 8);
+}
+
+function sitesNamed(text) {
+  return SITES.filter((site) => text.includes(site));
+}
+
+function computeAudit() {
+  const byGrade = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
+  let hidden = 0;
+  let steps = 0;
+  let withSource = 0;
+  let twoPlus = 0;
+  let missable = 0;
+  let unconfirmed = 0;
+  let disputes = 0;
+  const pages = new Set();
+  const sites = new Set();
+  for (const t of state.trophies) {
+    byGrade[t.grade] = (byGrade[t.grade] || 0) + 1;
+    if (t.hidden) hidden += 1;
+    steps += splitSteps(t.guide).length;
+    if (t.source && t.sourceUrl) withSource += 1;
+    if (sitesNamed(t.guide).length >= 2) twoPlus += 1;
+    if (t.missable) missable += 1;
+    if (/unconfirmed/i.test(t.guide)) unconfirmed += 1;
+    if (/\bdisagree\w*\b/i.test(t.guide) || /\bconflict\w*\b/i.test(t.guide)) disputes += 1;
+    pages.add(t.sourceUrl);
+    sites.add(t.source);
+  }
+  return {
+    total: state.trophies.length,
+    byGrade,
+    hidden,
+    steps,
+    withSource,
+    twoPlus,
+    pages: pages.size,
+    sites: sites.size,
+    missable,
+    unconfirmed,
+    disputes,
+  };
+}
+
+function renderAudit() {
+  const a = computeAudit();
+  const parts = [
+    `${a.total}/${a.total} official name, description, grade`,
+    `${a.byGrade.platinum}P ${a.byGrade.gold}G ${a.byGrade.silver}S ${a.byGrade.bronze}B`,
+    `${a.hidden} PSN-hidden`,
+    `${a.steps}/${a.steps} steps cited`,
+    `${a.withSource}/${a.total} guides cite sources`,
+    `${a.twoPlus} backed by 2+ sources`,
+    `${a.pages} pages · ${a.sites} sites`,
+    `read ${READ_DATE}`,
+    `${a.missable} possibly missable`,
+    `${a.unconfirmed} unconfirmed`,
+    `${a.disputes} disputes found`,
+  ];
+  $('auditBar').textContent = parts.join(' · ');
 }
 
 function gradeLabel(grade) {
@@ -114,7 +198,10 @@ function tagHtml(trophy) {
   const tags = [`<span class="tag kind-${trophy.kind}">${kindLabel(trophy.kind)}</span>`];
   if (state.earned.has(trophy.id)) tags.push('<span class="tag earned-tag">✓ Earned</span>');
   if (trophy.missable) tags.push('<span class="tag missable">Missable</span>');
-  if (trophy.count != null) tags.push(`<span class="tag">Target: ${trophy.count.toLocaleString('en-US')}</span>`);
+  if (trophy.count != null) {
+    const unit = trophy.countUnit ? ` ${trophy.countUnit}` : '';
+    tags.push(`<span class="tag">Target: ${trophy.count.toLocaleString('en-US')}${unit}</span>`);
+  }
   if (trophy.hidden) tags.push('<span class="tag">Hidden</span>');
   return tags.join('');
 }
@@ -141,15 +228,80 @@ function renderList() {
   $('resultCount').textContent = `Showing ${shown.length} of ${state.trophies.length} trophies`;
 }
 
-// Round 2: a guide opens as numbered key steps — one sentence per step —
-// so its substance reads at a glance instead of as one block of prose.
-function renderGuideSteps(guide) {
-  const steps = guide
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 3)
-    .slice(0, 8);
-  $('guideSteps').innerHTML = steps.map((s) => `<li>${s.replace(/</g, '&lt;')}</li>`).join('');
+// Round 3: a guide opens as numbered key steps — one sentence per step —
+// each step carrying the numbered citation of the source it draws on. A step
+// cites the guide's own source by default, and any second site the step's
+// own words name as well. The function returns, per source number, how many
+// steps cite it, for the sources panel beside the guide.
+function renderGuideSteps(trophy) {
+  const steps = splitSteps(trophy.guide);
+  const primary = SITES.indexOf(trophy.source) + 1;
+  const cited = {};
+  $('guideSteps').innerHTML = steps
+    .map((s) => {
+      const extra = sitesNamed(s).filter((site) => site !== trophy.source);
+      const nums = [primary, ...extra.map((site) => SITES.indexOf(site) + 1)].sort((a, b) => a - b);
+      nums.forEach((n) => {
+        cited[n] = (cited[n] || 0) + 1;
+      });
+      const marks = nums.map((n) => `<sup class="cite">[${n}]</sup>`).join(' ');
+      return `<li>${s.replace(/</g, '&lt;')} ${marks}</li>`;
+    })
+    .join('');
+  return cited;
+}
+
+// Round 3: the sources panel beside a guide. It lists every source the
+// guide's steps cite, with how many steps each one backs and the date it was
+// read — and it says so plainly when a guide has only one source, instead of
+// pretending a second one was consulted. With one source per trophy there is
+// no disagreement to show both ways, and the panel does not invent one.
+function renderSourcesPanel(trophy, cited) {
+  const host = $('guideSources');
+  const nums = Object.keys(cited)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const rows = nums
+    .map((n) => {
+      const site = SITES[n - 1];
+      const url = site === trophy.source ? trophy.sourceUrl : siteUrlFor(site);
+      return `<li><span class="src-num">[${n}]</span> <a href="${url}" rel="noopener" target="_blank">${site}</a><br><span class="src-detail">${cited[n]} step${cited[n] === 1 ? '' : 's'} cited · read ${READ_DATE}</span></li>`;
+    })
+    .join('');
+  const single =
+    nums.length === 1
+      ? `<p class="src-note">Single source — one guide page was consulted for this trophy. Every step cites [${nums[0]}].</p>`
+      : '';
+  host.innerHTML =
+    `<h3>Sources for this guide · ${nums.length}</h3><ul class="src-list">${rows}</ul>${single}`;
+}
+
+function siteUrlFor(site) {
+  const found = state.trophies.find((t) => t.source === site);
+  return found ? found.sourceUrl : '#';
+}
+
+// Round 3: a running counter for trophies with a target number — meditations,
+// vehicles, races and the rest. It lives in the guide panel, persists with
+// the rest of the progress, and is what the cover's missable trophy shows.
+function renderCounter(trophy) {
+  const box = $('guideCounter');
+  if (trophy.count == null) {
+    box.hidden = true;
+    return;
+  }
+  box.hidden = false;
+  $('counterNow').textContent = state.counts[trophy.id] ?? 0;
+  $('counterTarget').textContent = trophy.count.toLocaleString('en-US');
+  $('counterUnit').textContent = trophy.countUnit ?? 'count';
+}
+
+function setCount(id, value) {
+  const trophy = state.trophies.find((t) => t.id === id);
+  if (!trophy || trophy.count == null) return;
+  state.counts[id] = Math.max(0, Math.min(trophy.count, value));
+  saveStore();
+  renderCounter(trophy);
 }
 
 function openGuide(id) {
@@ -160,7 +312,9 @@ function openGuide(id) {
   $('guideTitle').textContent = trophyVisibleName(trophy);
   $('guideDesc').textContent = trophyVisibleDesc(trophy);
   $('guideMeta').innerHTML = tagHtml(trophy);
-  renderGuideSteps(trophy.guide);
+  renderCounter(trophy);
+  const cited = renderGuideSteps(trophy);
+  renderSourcesPanel(trophy, cited);
   const link = $('guideSource');
   link.textContent = trophy.source;
   link.href = trophy.sourceUrl;
@@ -217,6 +371,7 @@ function exportProgress() {
     version: 1,
     exportedAt: new Date().toISOString(),
     earned: [...state.earned].sort(),
+    counts: state.counts,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -235,10 +390,20 @@ async function importProgress(file) {
     if (!Array.isArray(ids)) throw new Error('no earned list');
     const known = new Set(state.trophies.map((t) => t.id));
     state.earned = new Set(ids.filter((id) => known.has(id)));
+    // Round 3: counters travel with the export too, clamped to each
+    // trophy's target so a hand-edited file cannot push a count past it.
+    if (parsed.counts && typeof parsed.counts === 'object') {
+      state.counts = {};
+      for (const [id, n] of Object.entries(parsed.counts)) {
+        const t = state.trophies.find((x) => x.id === id);
+        if (t && t.count != null) state.counts[id] = Math.max(0, Math.min(t.count, Number(n) || 0));
+      }
+    }
     saveStore();
     renderProgress();
     renderList();
     renderRoadmap(state);
+    if (state.openGuideId) openGuide(state.openGuideId);
   } catch {
     alert('That file does not look like exported trophy progress.');
   }
@@ -254,6 +419,12 @@ function wireEvents() {
     if (btn) openGuide(btn.dataset.guide);
   });
   $('guideClose').addEventListener('click', closeGuide);
+  $('counterMinus').addEventListener('click', () => {
+    if (state.openGuideId) setCount(state.openGuideId, (state.counts[state.openGuideId] ?? 0) - 1);
+  });
+  $('counterPlus').addEventListener('click', () => {
+    if (state.openGuideId) setCount(state.openGuideId, (state.counts[state.openGuideId] ?? 0) + 1);
+  });
   $('search').addEventListener('input', (e) => {
     state.query = e.target.value.trim().toLowerCase();
     renderList();
@@ -299,14 +470,16 @@ function wireEvents() {
 async function boot() {
   const stored = loadStore();
   state.earned = new Set(stored.earned);
+  state.counts = stored.counts;
   state.hideSpoilers = stored.hideSpoilers;
   $('spoilerToggle').checked = state.hideSpoilers;
   $('spoilerNote').hidden = !state.hideSpoilers;
   const res = await fetch(DATA_URL);
   const data = await res.json();
   state.trophies = data.trophies;
-  window.__atlas = { state, setEarned, openGuide, setView };
+  window.__atlas = { state, setEarned, setCount, openGuide, setView };
   wireEvents();
+  renderAudit();
   renderCounts();
   renderProgress();
   renderList();

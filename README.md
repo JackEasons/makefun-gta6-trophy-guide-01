@@ -13,8 +13,11 @@ An offline guide and tracker for all 55 PlayStation 5 trophies of Grand Theft Au
 - **Filters** — by kind (story, missable, collectibles, activities, online), by grade, by earned/unearned, plus full-text search.
 - **Spoiler setting** — on by default: hidden story trophies stay covered (name and description) until you earn them.
 - **Roadmap to the platinum** — four stages in the order the published roadmaps recommend, with the time each stage takes and the trophies in it.
-- **Cited guides** — every trophy's guide names its source (Push Square, PowerPyx, GTABase, Insider Gaming, KeenGamer) beside the guide text, shown as a source chip under the guide.
+- **Cited guides** — every trophy's guide names its source (Push Square, PowerPyx, GTABase, KeenGamer) beside the guide text, shown as a source chip under the guide.
 - **Key steps** — each guide opens as a numbered list of steps, so its substance is readable at a glance, with the source chip right below it.
+- **Audit bar** — the title is followed by a bar computed from the data itself: 55/55 official names, descriptions and grades, the grade split, hidden count, steps cited (176/176), guides citing sources, pages and sites read, the one possibly missable trophy, unconfirmed guides, and disputes found.
+- **Numbered citations & sources panel** — every guide step carries the numbered citation of the source it draws on, and the guide panel shows a “Sources for this guide” panel with each source's cited-step count and read date; a guide with a single source says so plainly instead of pretending a second one was consulted.
+- **Counters** — trophies with a target number (meditations, vehicles, races…) get a running counter with −/+ buttons, saved with your progress.
 
 ## Run it
 

@@ -100,7 +100,21 @@ export function renderRoadmap(state) {
   const host = document.getElementById('roadmapStages');
   if (!host || !state.trophies.length) return;
   const byId = new Map(state.trophies.map((t) => [t.id, t]));
-  host.innerHTML = STAGES.map((stage) => {
+  // Round 3: the next three unearned trophies in roadmap order, up front, so
+  // the roadmap view answers "what do I do next" before it lists the stages.
+  const ordered = STAGES.flatMap((stage) => stage.ids);
+  const nextUp = ordered.filter((id) => !state.earned.has(id)).slice(0, 3);
+  const nextHtml = nextUp.length
+    ? `<p class="roadmap-next"><strong>Next up · roadmap order:</strong> ${nextUp
+        .map((id, i) => {
+          const t = byId.get(id);
+          if (!t) return '';
+          const label = state.hideSpoilers && t.hidden && !state.earned.has(id) ? 'Hidden trophy' : t.name;
+          return `<button type="button" class="next-chip" data-guide="${id}">${i + 1}. ${label}</button>`;
+        })
+        .join(' ')}</p>`
+    : '<p class="roadmap-next"><strong>Next up · roadmap order:</strong> all roadmap trophies earned — the platinum is yours.</p>';
+  host.innerHTML = nextHtml + STAGES.map((stage) => {
     const done = stage.ids.filter((id) => state.earned.has(id)).length;
     const chips = stage.ids
       .map((id) => {
