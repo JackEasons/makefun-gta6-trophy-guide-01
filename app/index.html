@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leonida Trophy Atlas — GTA VI Trophy Guide &amp; Tracker</title>
+<meta name="description" content="An offline guide and tracker for all 55 PlayStation 5 trophies of Grand Theft Auto VI: checklist, roadmap to the platinum, missable flags, and a guide with sources for every trophy.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div>
+      <p class="kicker">Grand Theft Auto VI &middot; PlayStation 5 &middot; 55 trophies</p>
+      <h1>Leonida Trophy Atlas</h1>
+      <p class="tagline">Every trophy, every guide, one road to the platinum. Works fully offline — no network, no account.</p>
+    </div>
+    <div class="progress-card" id="progressCard" aria-live="polite">
+      <div class="progress-numbers"><span id="earnedCount">0</span><span class="of">/ 55 earned</span></div>
+      <div class="progress-bar" role="progressbar" aria-label="Trophies earned" aria-valuemin="0" aria-valuemax="55" aria-valuenow="0" id="progressBar"><span id="progressFill"></span></div>
+      <p class="progress-sub" id="progressSub">Platinum 0/1 &middot; Gold 0/2 &middot; Silver 0/6 &middot; Bronze 0/46</p>
+      <p class="progress-sub" id="nextUp"></p>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Sections">
+  <button type="button" class="tab active" id="tabChecklist" data-view="checklist">Checklist</button>
+  <button type="button" class="tab" id="tabRoadmap" data-view="roadmap">Roadmap to Platinum</button>
+</nav>
+
+<main>
+  <section id="viewChecklist" aria-label="Trophy checklist">
+    <div class="toolbar">
+      <label class="search-label">Search <input id="search" type="search" placeholder="Trophy name or description…" autocomplete="off"></label>
+      <div class="chips" id="kindChips" role="group" aria-label="Filter by kind">
+        <button type="button" class="chip active" data-kind="all">All <span class="chip-count" data-count-for="all"></span></button>
+        <button type="button" class="chip" data-kind="story">Story <span class="chip-count" data-count-for="story"></span></button>
+        <button type="button" class="chip" data-kind="missable">Missable <span class="chip-count" data-count-for="missable"></span></button>
+        <button type="button" class="chip" data-kind="collectibles">Collectibles <span class="chip-count" data-count-for="collectibles"></span></button>
+        <button type="button" class="chip" data-kind="activities">Activities <span class="chip-count" data-count-for="activities"></span></button>
+        <button type="button" class="chip" data-kind="online">Online <span class="chip-count" data-count-for="online"></span></button>
+      </div>
+      <label class="field">Grade
+        <select id="gradeFilter">
+          <option value="all">All grades</option>
+          <option value="platinum">Platinum</option>
+          <option value="gold">Gold</option>
+          <option value="silver">Silver</option>
+          <option value="bronze">Bronze</option>
+        </select>
+      </label>
+      <label class="field">Show
+        <select id="earnedFilter">
+          <option value="all">All trophies</option>
+          <option value="earned">Earned only</option>
+          <option value="unearned">Unearned only</option>
+        </select>
+      </label>
+      <label class="toggle"><input id="spoilerToggle" type="checkbox" checked> Hide spoilers</label>
+      <div class="io-buttons">
+        <button type="button" id="exportBtn">Export progress</button>
+        <label class="import-btn">Import progress <input id="importFile" type="file" accept="application/json,.json"></label>
+        <button type="button" id="resetBtn" title="Clear all earned checkmarks">Reset</button>
+      </div>
+    </div>
+    <p class="spoiler-note" id="spoilerNote">Spoilers hidden: story trophy names and descriptions stay covered until you earn them. Uncheck “Hide spoilers” to reveal the full list.</p>
+    <p class="result-count" id="resultCount" aria-live="polite"></p>
+    <ul class="trophy-list" id="trophyList"></ul>
+    <p class="empty-state" id="emptyState" hidden>No trophies match these filters. Try clearing the search or choosing another kind.</p>
+  </section>
+
+  <section id="viewRoadmap" aria-label="Roadmap to the platinum" hidden>
+    <div class="missable-callout" role="note">
+      <h2>Read this before Chapter 1 ends</h2>
+      <p><strong>Positive Mental Attitude</strong> is the only trophy any guide flags as possibly missable. In Chapter 1, after the mission <em>Down to Earth</em>, Lucia invites you to meditate on the balcony at Jason’s house. Do that meditation before leaving Chapter 1, and keep a separate Chapter 1 save as insurance — PowerPyx is still checking whether skipping it blocks the trophy. Everything else can be finished in free roam after the story.</p>
+    </div>
+    <div id="roadmapStages"></div>
+    <div class="roadmap-notes">
+      <h2>Planning notes</h2>
+      <ul>
+        <li>One playthrough is enough: there is no mission replay and no New Game+, but free roam continues after the final mission.</li>
+        <li>Keep cheats off — using a cheat disables trophies and saving.</li>
+        <li>Keep a manual save at each chapter boundary. Missions cannot be replayed.</li>
+        <li>The 100% checklist is closer to 60% true completion: PowerPyx notes you need 200 of 277 vehicle scans, 100 of 255 animals studied and 50 of 66 weapons, not all of them.</li>
+        <li>Time budget from the guides: story 60–80 hours, 100% checklist about 100 hours, Strangers &amp; Freaks and clean-up about 10 hours — roughly 200 hours to the platinum.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="guidePanel" class="guide-panel" aria-label="Trophy guide" hidden>
+    <div class="guide-panel-head">
+      <div>
+        <p class="guide-kicker" id="guideKicker"></p>
+        <h2 id="guideTitle"></h2>
+        <p class="guide-desc" id="guideDesc"></p>
+      </div>
+      <button type="button" id="guideClose" aria-label="Close guide">×</button>
+    </div>
+    <div class="guide-meta" id="guideMeta"></div>
+    <h3>How to unlock it</h3>
+    <p id="guideText"></p>
+    <p class="guide-source">Source: <a id="guideSource" href="#" rel="noopener" target="_blank"></a> <span id="guideSourceNote"></span></p>
+    <label class="guide-earned"><input id="guideEarned" type="checkbox"> Mark as earned</label>
+  </section>
+</main>
+
+<footer>
+  <p>Official trophy names, descriptions and grades are shown as PlayStation publishes them. Every guide on this page is written in our own words for this atlas, and each one cites the guide it draws on — a named source beside every trophy. No Rockstar Games logo, artwork or game imagery is used anywhere in this guide.</p>
+  <p>Sources consulted: Push Square, PowerPyx, GTABase, Insider Gaming, KeenGamer. Progress is stored only in your browser (localStorage) and never leaves your device.</p>
+</footer>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
