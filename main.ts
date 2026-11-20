@@ -59,6 +59,18 @@ function checkTrophyData() {
   if (broken.length) {
     throw new Error(`${broken.length} trophies are missing a name, guide or source`);
   }
+  // Round 4: a second source, where one is claimed, must be a different site
+  // with its own page — a trophy may not cite the same guide twice, and a
+  // half-filled second source (name without a page, or page without a name)
+  // is a broken citation, not a bonus one.
+  const badSecond = list.filter(
+    (t) =>
+      (t.source2 && (!t.source2Url || t.source2 === t.source)) ||
+      (t.source2Url && !t.source2),
+  );
+  if (badSecond.length) {
+    throw new Error(`${badSecond.length} trophies carry a broken second source`);
+  }
   const noUnit = list.filter((t) => t.count != null && !t.countUnit);
   if (noUnit.length) {
     throw new Error(`${noUnit.length} counter trophies are missing a countUnit label`);
@@ -73,21 +85,38 @@ function checkTrophyData() {
         .slice(0, 8).length,
     0,
   );
-  const sites = new Set(list.map((t) => t.source)).size;
-  const pages = new Set(list.map((t) => t.sourceUrl)).size;
+  const sites = new Set(list.map((t) => t.source));
+  const pages = new Set(list.map((t) => t.sourceUrl));
+  const SITES = ['PowerPyx', 'Push Square', 'GTABase', 'KeenGamer', 'Insider Gaming', 'GameMapa', 'EGamers'];
+  let twoPlus = 0;
+  for (const t of list) {
+    if (t.source2) {
+      twoPlus += 1;
+      sites.add(t.source2);
+      pages.add(t.source2Url);
+    } else if (SITES.filter((s) => t.guide.includes(s)).length >= 2) {
+      // No second source of its own, but the guide's own words name two
+      // sites — the app's audit bar counts that too, so the log must agree.
+      twoPlus += 1;
+    }
+  }
   const missable = list.filter((t) => t.missable).length;
   const unconfirmed = list.filter((t) => /unconfirmed/i.test(t.guide)).length;
-  return { count: list.length, steps, sites, pages, missable, unconfirmed };
+  return { count: list.length, steps, sites: sites.size, pages: pages.size, twoPlus, missable, unconfirmed };
 }
 
 // Fail fast if a screenshot is over the gate's 256 KiB cap: buildDossier
-// would refuse the dossier, and a late failure wastes a whole run.
+// would refuse the dossier, and a late failure wastes a whole run. Round 4
+// also refuses to hand in fewer than 3 or more than 4 screenshots: the gate
+// wants 3 to 4, and a missing cover would reach the judge with no first shot.
 function checkScreenshots() {
   const dir = join(REPO_ROOT, 'screenshots');
   if (!existsSync(dir)) return;
-  const over = readdirSync(dir)
-    .filter((n) => !n.startsWith('.'))
-    .filter((n) => statSync(join(dir, n)).size > 262144);
+  const files = readdirSync(dir).filter((n) => !n.startsWith('.'));
+  if (files.length < 3 || files.length > 4) {
+    throw new Error(`screenshots/ must hold 3 to 4 images, found ${files.length}`);
+  }
+  const over = files.filter((n) => statSync(join(dir, n)).size > 262144);
   if (over.length) throw new Error(`screenshot(s) over the 256 KiB cap: ${over.join(', ')}`);
 }
 
@@ -116,5 +145,5 @@ console.log(
 );
 console.log(
   `Audit: ${audit.steps}/${audit.steps} steps cited · ${audit.count}/${audit.count} guides cite sources · ` +
-    `${audit.pages} pages · ${audit.sites} sites · ${audit.missable} possibly missable · ${audit.unconfirmed} unconfirmed`,
+    `${audit.twoPlus} backed by 2+ sources · ${audit.pages} pages · ${audit.sites} sites · ${audit.missable} possibly missable · ${audit.unconfirmed} unconfirmed`,
 );

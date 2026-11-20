@@ -433,6 +433,29 @@ body.shot-compact .guide-earned { display: none; }
   font-weight: 600;
 }
 
+/* Round 4: the platinum route at a glance, under the audit bar. Four stage
+   chips in one row; a click opens the full roadmap tab. */
+.route-wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+.route-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.route-stage {
+  flex: 1 1 200px;
+  text-align: left;
+  background: rgba(13, 11, 30, 0.72);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+  cursor: pointer;
+}
+.route-stage strong { color: var(--accent-2); }
+.route-stage:hover { border-color: var(--accent-2); }
+body.shot-compact .route-strip { margin-top: 8px; }
+body.shot-compact .route-stage { font-size: 12px; padding: 6px 10px; }
+
 /* The guide panel splits: steps on the left, the cited sources on the right. */
 .guide-body { display: grid; grid-template-columns: 1fr 250px; gap: 18px; align-items: start; }
 .guide-main h3 { margin: 14px 0 4px; font-size: 16px; }
@@ -463,6 +486,10 @@ body.shot-compact .guide-earned { display: none; }
   border-radius: 10px;
   font-size: 15px;
 }
+
+/* A flex display beats the browser's own [hidden] rule, so without this the
+   counter stayed visible as a phantom "0 /" box on trophies with no target. */
+.guide-counter[hidden] { display: none; }
 .counter-label { font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; font-size: 13px; color: var(--gold); }
 .counter-value strong { font-size: 20px; color: var(--text); }
 .counter-btn {

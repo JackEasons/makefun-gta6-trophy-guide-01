@@ -2,7 +2,7 @@
 // Loads app/data/trophies.json, keeps earned progress in localStorage, and can
 // export that progress to a file and import it back. No network at run time.
 
-import { renderRoadmap } from './roadmap.js';
+import { renderRoadmap, STAGES } from './roadmap.js';
 import { applyShotParams } from './shots.js';
 
 const DATA_URL = 'data/trophies.json';
@@ -21,11 +21,14 @@ const state = {
   openGuideId: null,
 };
 
-// The four guide pages this atlas draws on, numbered in the order they first
+// The seven guide pages this atlas draws on, numbered in the order they first
 // appear in trophies.json — every step citation [n] below points at one of
-// these, and the audit bar counts from the same list. Read 20 Nov 2026.
-const SITES = ['PowerPyx', 'Push Square', 'GTABase', 'KeenGamer'];
+// these, and the audit bar counts from the same list. The first four were
+// read 20 Nov 2026; the last three joined the atlas on 21 Nov 2026, each
+// checked to carry the full 55-trophy list before it was cited.
+const SITES = ['PowerPyx', 'Push Square', 'GTABase', 'KeenGamer', 'Insider Gaming', 'GameMapa', 'EGamers'];
 const READ_DATE = '20 Nov 2026';
+const READ_DATES = { 'Insider Gaming': '21 Nov 2026', GameMapa: '21 Nov 2026', EGamers: '21 Nov 2026' };
 
 const $ = (id) => document.getElementById(id);
 
@@ -55,10 +58,13 @@ function saveStore() {
 // trophy data itself, so the bar can never drift from what the atlas holds:
 // official names/descriptions/grades, grade split, hidden count, guide steps
 // (each step cites its source), guides with a source, guides naming two or
-// more of the four sites, distinct pages/sites read, the missable trophy,
+// more of the seven sites, distinct pages/sites read, the missable trophy,
 // guides that say their trigger is unconfirmed, and disagreements between
 // sources (none found — with one source per trophy there is nothing to
-// compare, and the bar says so instead of inventing a dispute).
+// compare, and the bar says so instead of inventing a dispute). Round 4:
+// a trophy counts as backed by 2+ sources when it carries a verified second
+// source of its own, or when its words name two sites; the pages and sites
+// tallies count second sources too, so the bar grows only where the data did.
 function splitSteps(guide) {
   return guide
     .split(/(?<=[.!?])\s+/)
@@ -87,12 +93,14 @@ function computeAudit() {
     if (t.hidden) hidden += 1;
     steps += splitSteps(t.guide).length;
     if (t.source && t.sourceUrl) withSource += 1;
-    if (sitesNamed(t.guide).length >= 2) twoPlus += 1;
+    if (t.source2 || sitesNamed(t.guide).length >= 2) twoPlus += 1;
     if (t.missable) missable += 1;
     if (/unconfirmed/i.test(t.guide)) unconfirmed += 1;
     if (/\bdisagree\w*\b/i.test(t.guide) || /\bconflict\w*\b/i.test(t.guide)) disputes += 1;
     pages.add(t.sourceUrl);
+    if (t.source2Url) pages.add(t.source2Url);
     sites.add(t.source);
+    if (t.source2) sites.add(t.source2);
   }
   return {
     total: state.trophies.length,
@@ -119,12 +127,25 @@ function renderAudit() {
     `${a.withSource}/${a.total} guides cite sources`,
     `${a.twoPlus} backed by 2+ sources`,
     `${a.pages} pages · ${a.sites} sites`,
-    `read ${READ_DATE}`,
+    `read 20-21 Nov 2026`,
     `${a.missable} possibly missable`,
     `${a.unconfirmed} unconfirmed`,
     `${a.disputes} disputes found`,
   ];
   $('auditBar').textContent = parts.join(' · ');
+}
+
+// Round 4: the platinum route at a glance, under the audit bar, so the
+// landing view shows the roadmap without opening its tab: each stage's
+// number, short name, time budget and done count, drawn from the same earned
+// set as the tracker, and a click on any stage opens the full roadmap.
+function renderRouteStrip() {
+  const host = $('routeStrip');
+  if (!host) return;
+  host.innerHTML = STAGES.map((stage) => {
+    const done = stage.ids.filter((id) => state.earned.has(id)).length;
+    return `<button type="button" class="route-stage" data-route-stage="${stage.n}"><strong>Stage ${stage.n} · ${stage.short}</strong> — ${stage.time} · ${done}/${stage.ids.length} done</button>`;
+  }).join('');
 }
 
 function gradeLabel(grade) {
@@ -264,8 +285,16 @@ function renderSourcesPanel(trophy, cited) {
   const rows = nums
     .map((n) => {
       const site = SITES[n - 1];
-      const url = site === trophy.source ? trophy.sourceUrl : siteUrlFor(site);
-      return `<li><span class="src-num">[${n}]</span> <a href="${url}" rel="noopener" target="_blank">${site}</a><br><span class="src-detail">${cited[n]} step${cited[n] === 1 ? '' : 's'} cited · read ${READ_DATE}</span></li>`;
+      // Round 4: a trophy's own second source links to its own page; any
+      // other site a step names falls back to that site's guide page.
+      const url =
+        site === trophy.source
+          ? trophy.sourceUrl
+          : site === trophy.source2
+            ? trophy.source2Url
+            : siteUrlFor(site);
+      const read = READ_DATES[site] ?? READ_DATE;
+      return `<li><span class="src-num">[${n}]</span> <a href="${url}" rel="noopener" target="_blank">${site}</a><br><span class="src-detail">${cited[n]} step${cited[n] === 1 ? '' : 's'} cited · read ${read}</span></li>`;
     })
     .join('');
   const single =
@@ -342,6 +371,7 @@ function setEarned(id, earned) {
   renderProgress();
   renderList();
   renderRoadmap(state);
+  renderRouteStrip();
   if (state.openGuideId === id) $('guideEarned').checked = earned;
 }
 
@@ -353,6 +383,7 @@ function resetProgress() {
   renderProgress();
   renderList();
   renderRoadmap(state);
+  renderRouteStrip();
   closeGuide();
 }
 
@@ -403,6 +434,7 @@ async function importProgress(file) {
     renderProgress();
     renderList();
     renderRoadmap(state);
+    renderRouteStrip();
     if (state.openGuideId) openGuide(state.openGuideId);
   } catch {
     alert('That file does not look like exported trophy progress.');
@@ -459,6 +491,9 @@ function wireEvents() {
   });
   $('tabChecklist').addEventListener('click', () => setView('checklist'));
   $('tabRoadmap').addEventListener('click', () => setView('roadmap'));
+  $('routeStrip').addEventListener('click', (e) => {
+    if (e.target.closest('[data-route-stage]')) setView('roadmap');
+  });
   $('roadmapStages').addEventListener('click', (e) => {
     const chip = e.target.closest('[data-guide]');
     if (!chip) return;
@@ -484,12 +519,14 @@ async function boot() {
   renderProgress();
   renderList();
   renderRoadmap(state);
+  renderRouteStrip();
   // Scene params (used by the maker's screenshot runs) mutate state after the
   // first render, so render once more with the scene applied.
   applyShotParams(state, { setEarned, openGuide, setView });
   renderProgress();
   renderList();
   renderRoadmap(state);
+  renderRouteStrip();
   if (state.openGuideId) openGuide(state.openGuideId);
 }
 

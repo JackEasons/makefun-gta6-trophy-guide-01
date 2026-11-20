@@ -6,6 +6,7 @@ export const STAGES = [
   {
     n: 1,
     title: 'Play the story — and mind the one missable',
+    short: 'Story',
     time: '60–80 hours',
     blurb:
       'Play all five chapters and take side content as it appears. Scan vehicles and study animals as you go — the 100% checklist counts progress made during the story. Keep a manual save at each chapter boundary: there is no mission replay.',
@@ -40,6 +41,7 @@ export const STAGES = [
   {
     n: 2,
     title: 'Strangers & Freaks and the character questlines',
+    short: 'Strangers & Freaks',
     time: 'about 10 hours',
     blurb:
       'Finish the eight stranger mission strands and the six character questlines — Andy, Kenton, Billy, Randy, Tyrone and Bret. Andy’s strand is Lucia-only; Tyrone’s and Bret’s are Jason-only. Every quest giver tied to a trophy comes back after the story, so nothing here is lost if you leave it.',
@@ -56,6 +58,7 @@ export const STAGES = [
   {
     n: 3,
     title: 'The 100% Completion Checklist',
+    short: '100% checklist',
     time: 'about 100 hours',
     blurb:
       'After the final mission, open Progress, then Stats, then 100% Completion. The list is lenient — 300 stunts, all 42 shooting-range gold medals, 15 of 18 card sets, 100 WAiNK scans, 33 underwater discoveries, all robberies, and 70 of the 80 challenges. Work it region by region so one trip clears several counters at once.',
@@ -82,6 +85,7 @@ export const STAGES = [
   {
     n: 4,
     title: 'Clean-up, then the platinum',
+    short: 'Clean-up',
     time: 'a few hours',
     blurb:
       'Mop up whatever is left — the vague-description trophies whose triggers the guides had not pinned down at launch, and any counters still short. Once the last one pops, Vice Got a Price! follows immediately.',
